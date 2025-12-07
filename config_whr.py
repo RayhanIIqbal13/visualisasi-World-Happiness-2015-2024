@@ -77,18 +77,34 @@
 import psycopg2  # Library untuk koneksi ke PostgreSQL
 from psycopg2 import OperationalError, DatabaseError  # Exception handling
 import sys  # Untuk keluar dari program jika koneksi gagal
+import os  # Untuk akses environment variables
+import streamlit as st  # Untuk akses Streamlit secrets
 
 # ================================================
 # KONFIGURASI KONEKSI DATABASE
 # ================================================
 # Variabel DB_CONFIG berisi informasi koneksi ke PostgreSQL
-DB_CONFIG = {
-    "host": "localhost",           # IP/hostname PostgreSQL server
-    "port": 5432,                  # Port default PostgreSQL
-    "user": "postgres",            # Username untuk login PostgreSQL
-    "password": "iqbal",           # Password untuk login PostgreSQL
-    "database": "world_happines_v2"  # Nama database yang digunakan
-}
+# Priority: Streamlit secrets > Environment variables > Local defaults
+
+# Get database config from Streamlit secrets (for cloud deployment)
+try:
+    db_config_dict = st.secrets["database"]
+    DB_CONFIG = {
+        "host": db_config_dict.get("host", "localhost"),
+        "port": int(db_config_dict.get("port", 5432)),
+        "user": db_config_dict.get("user", "postgres"),
+        "password": db_config_dict.get("password", ""),
+        "database": db_config_dict.get("database", "world_happines_v2")
+    }
+except (KeyError, FileNotFoundError):
+    # Fallback ke environment variables atau local config
+    DB_CONFIG = {
+        "host": os.getenv("DB_HOST", "localhost"),
+        "port": int(os.getenv("DB_PORT", 5432)),
+        "user": os.getenv("DB_USER", "postgres"),
+        "password": os.getenv("DB_PASSWORD", "iqbal"),
+        "database": os.getenv("DB_NAME", "world_happines_v2")
+    }
 
 # ================================================
 # KONEKSI KE DATABASE
