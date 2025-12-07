@@ -89,14 +89,18 @@ import streamlit as st  # Untuk akses Streamlit secrets
 # Get database config from Streamlit secrets (for cloud deployment)
 try:
     db_config_dict = st.secrets["database"]
-    DB_CONFIG = {
-        "host": db_config_dict.get("host", "localhost"),
-        "port": int(db_config_dict.get("port", 5432)),
-        "user": db_config_dict.get("user", "postgres"),
-        "password": db_config_dict.get("password", ""),
-        "database": db_config_dict.get("database", "world_happines_v2")
-    }
-except (KeyError, FileNotFoundError):
+    # Handle both dict and string types
+    if isinstance(db_config_dict, dict):
+        DB_CONFIG = {
+            "host": db_config_dict.get("host", "localhost"),
+            "port": int(db_config_dict.get("port", 5432)),
+            "user": db_config_dict.get("user", "postgres"),
+            "password": db_config_dict.get("password", ""),
+            "database": db_config_dict.get("database", "world_happines_v2")
+        }
+    else:
+        raise KeyError("database config is not a dict")
+except (KeyError, FileNotFoundError, AttributeError, TypeError):
     # Fallback ke environment variables atau local config
     DB_CONFIG = {
         "host": os.getenv("DB_HOST", "localhost"),
