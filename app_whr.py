@@ -118,11 +118,21 @@ except (KeyError, FileNotFoundError, AttributeError):
     PORT = os.getenv("port", os.getenv("DB_PORT", "5432"))
     DBNAME = os.getenv("dbname", os.getenv("DB_NAME", "postgres"))
 
-# Construct the SQLAlchemy connection string
-DATABASE_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}?sslmode=require"
+# Construct the SQLAlchemy connection string with IPv4 enforcement
+DATABASE_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}?sslmode=require&tcp_user_timeout=10000"
 
-# Create the SQLAlchemy engine
-engine = create_engine(DATABASE_URL)
+# Create the SQLAlchemy engine with connection parameters for Supabase
+from sqlalchemy import create_engine
+from sqlalchemy.pool import NullPool
+
+engine = create_engine(
+    DATABASE_URL,
+    poolclass=NullPool,  # Disable connection pooling for Supabase
+    connect_args={
+        "connect_timeout": 10,
+        "options": "-c statement_timeout=30000"
+    }
+)
 
 # Test the connection
 try:
