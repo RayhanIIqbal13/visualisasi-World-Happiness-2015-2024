@@ -85,6 +85,43 @@ import plotly.express as px        # Visualisasi chart (bar, scatter, pie, etc)
 import plotly.graph_objects as go  # Advanced chart controls
 import numpy as np                 # Numerical computing
 from datetime import datetime      # Date/time utilities
+from sqlalchemy import create_engine  # SQLAlchemy ORM
+from dotenv import load_dotenv     # Load environment variables
+import os                          # OS operations
+
+# Load environment variables from .env
+load_dotenv()
+
+# Fetch database variables from .env or Streamlit secrets
+try:
+    import streamlit as st
+    db_secrets = st.secrets["database"]
+    USER = db_secrets.get("user", os.getenv("user", "postgres"))
+    PASSWORD = db_secrets.get("password", os.getenv("password", ""))
+    HOST = db_secrets.get("host", os.getenv("host", "localhost"))
+    PORT = db_secrets.get("port", os.getenv("port", "5432"))
+    DBNAME = db_secrets.get("database", os.getenv("dbname", "postgres"))
+except (KeyError, FileNotFoundError):
+    # Fallback to .env file
+    USER = os.getenv("user", "postgres")
+    PASSWORD = os.getenv("password", "")
+    HOST = os.getenv("host", "localhost")
+    PORT = os.getenv("port", "5432")
+    DBNAME = os.getenv("dbname", "postgres")
+
+# Construct the SQLAlchemy connection string
+DATABASE_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}?sslmode=require"
+
+# Create the SQLAlchemy engine
+engine = create_engine(DATABASE_URL)
+
+# Test the connection
+try:
+    with engine.connect() as connection:
+        st.success("✅ Database connection successful!")
+except Exception as e:
+    st.error(f"❌ Failed to connect to database: {e}")
+
 from config_whr import *           # Import semua functions dan variables dari config_whr.py
 
 # Try import folium untuk peta interaktif
