@@ -85,62 +85,6 @@ import plotly.express as px        # Visualisasi chart (bar, scatter, pie, etc)
 import plotly.graph_objects as go  # Advanced chart controls
 import numpy as np                 # Numerical computing
 from datetime import datetime      # Date/time utilities
-from sqlalchemy import create_engine  # SQLAlchemy ORM
-from dotenv import load_dotenv     # Load environment variables
-import os                          # OS operations
-
-# Load environment variables from .env
-load_dotenv()
-
-# Fetch database variables from .env or Streamlit secrets
-USER = "postgres"
-PASSWORD = ""
-HOST = "localhost"
-PORT = "5432"
-DBNAME = "postgres"
-
-try:
-    # Try to get from Streamlit secrets
-    db_secrets = st.secrets.get("database", {})
-    if isinstance(db_secrets, dict):
-        USER = db_secrets.get("user", os.getenv("user", "postgres"))
-        PASSWORD = db_secrets.get("password", os.getenv("password", ""))
-        HOST = db_secrets.get("host", os.getenv("host", "localhost"))
-        PORT = str(db_secrets.get("port", os.getenv("port", "5432")))
-        DBNAME = db_secrets.get("database", os.getenv("dbname", "postgres"))
-    else:
-        raise KeyError("Secrets not configured properly")
-except (KeyError, FileNotFoundError, AttributeError):
-    # Fallback to .env file or environment variables
-    USER = os.getenv("user", os.getenv("DB_USER", "postgres"))
-    PASSWORD = os.getenv("password", os.getenv("DB_PASSWORD", ""))
-    HOST = os.getenv("host", os.getenv("DB_HOST", "localhost"))
-    PORT = os.getenv("port", os.getenv("DB_PORT", "5432"))
-    DBNAME = os.getenv("dbname", os.getenv("DB_NAME", "postgres"))
-
-# Construct the SQLAlchemy connection string with IPv4 enforcement
-DATABASE_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}?sslmode=require&tcp_user_timeout=10000"
-
-# Create the SQLAlchemy engine with connection parameters for Supabase
-from sqlalchemy import create_engine
-from sqlalchemy.pool import NullPool
-
-engine = create_engine(
-    DATABASE_URL,
-    poolclass=NullPool,  # Disable connection pooling for Supabase
-    connect_args={
-        "connect_timeout": 10,
-        "options": "-c statement_timeout=30000"
-    }
-)
-
-# Test the connection
-try:
-    with engine.connect() as connection:
-        st.success("✅ Database connection successful!")
-except Exception as e:
-    st.error(f"❌ Failed to connect to database: {e}")
-
 from config_whr import *           # Import semua functions dan variables dari config_whr.py
 
 # Try import folium untuk peta interaktif
